@@ -1,0 +1,2 @@
+# testcma
+cma test

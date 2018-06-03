@@ -21,7 +21,7 @@ extern const int debug_level; // This is defined in the including driver
 // for a larger image fails.  A better solution would be to use a buddy
 // allocator and give out pieces that are only as large as necessary.
 #define N_BUFFERS 8
-#define BUFFER_SIZE (2048*1080*4) // This number must be a multiple of 4k pages so mmap works
+#define BUFFER_SIZE (2*1024*1024) // This number must be a multiple of 4k pages so mmap works
 
 unsigned char free_flag[N_BUFFERS];
 Buffer buffers[N_BUFFERS];
@@ -32,7 +32,11 @@ int init_buffers(struct device* dev)
 {
   int i;
   //dma_set_mask (dev, 0xffffffff); // Anything in a 32-bit space is fair game
-  dma_set_coherent_mask (dev, 0xffffffff); // Anything in a 32-bit space is fair game
+  //dma_set_coherent_mask (dev, 0xffffffffffffffff); // Anything in a 32-bit space is fair game
+  if (!dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64))) {
+    printk("DMA of 64-bit ranges not supported.\n");
+    return(-1);
+  }
 
   // Allocate a huge chunk of memory
   // For now, let's try and do this with the new-ish Linux Contiguous Memory
